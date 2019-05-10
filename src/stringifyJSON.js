@@ -38,12 +38,22 @@ var stringifyJSON = function(obj) {
 	}
 	if (typeof obj === 'object') {
 		var output = '{'
+		var objKeys = Object.keys(obj);
 		for(var key in obj){
-			if(typeof obj[key] === 'object'){
+			/*if(typeof obj[key] === 'object'){
 				output += `${key}: ${stringifyJSON(obj[key])}`
+			}*/
+			if(obj[key] === undefined || typeof obj[key] === 'function' ){
+				continue;
+			}
+			if(key !== objKeys[objKeys.length - 1]){
+				output += `"${key}":${stringifyJSON(obj[key])},`;
+			}else{
+				output += `"${key}":${stringifyJSON(obj[key])}`;
 			}
 		}
-		return `{` + stringifyJSON(obj) + `}`;
+		return output + '}';
+		//return `{` + stringifyJSON(obj) + `}`;
 	}
 	if (typeof obj === 'string') {
 		return `"${obj}"`;
@@ -51,30 +61,10 @@ var stringifyJSON = function(obj) {
 	if (typeof obj === 'number') {
 		return obj.toString();
 	}
-	if (typeof obj === 'undefined') {
+	if (typeof obj === 'undefined' || typeof obj === 'function') {
 		return '';
 	}
-	if (typeof obj === 'function') {
-		return '';
+	if (typeof obj === 'boolean') {
+		return `${obj}`;
 	}
-
 };
-
-// var clone = function(input) {
-	
-// 	if(Array.isArray(input)){
-// 		var cloned = []
-// 	}else{
-// 		var cloned = {};
-// 	}
-// 	for (let key in input) {
-// 		let value = input[key];
-// 		if (typeof value === "object") {
-// 	    	cloned[key] = clone(value);
-// 		} else {
-// 			cloned[key] = value;
-// 		}
-// 	}
-
-// 	return cloned;
-// };
