@@ -16,6 +16,9 @@
 var getElementsByClassName = function(className, element) {
 	let result = [];
   	if(!element){
+  		if(document.body.className.includes(className)){
+  		    result.push(document.body);
+  		}
   		var arr = document.body.children;
   	}else{
   		var arr = element;
@@ -28,7 +31,7 @@ var getElementsByClassName = function(className, element) {
 		  	}
 		}
 	  	if(arr[index].children){
-	  		result.concat(getElementsByClassName(className, arr[index].children));
+	  		result = result.concat(getElementsByClassName(className, arr[index].children));
 	  	}
   	}
   	return result;
