@@ -1,54 +1,26 @@
 // this is what you would do if you were one to do things the easy way:
 // var parseJSON = JSON.parse;
-// If a reviver is specified, the value computed by parsing is transformed before being returned. Specifically, 
-// the computed value and all its properties (beginning with the most nested properties and proceeding to the original value itself)
-// are individually run through the reviver. Then it is called, with the object containing the property being processed as this, 
-// and with the property name as a string, and the property value as arguments. 
-// If the reviver function returns undefined (or returns no value, for example, if execution falls off the end of the function), 
-// the property is deleted from the object. Otherwise, the property is redefined to be the return value.
-// If the reviver only transforms some values and not others, be certain to return all untransformed values as-is, 
-// otherwise they will be deleted from the resulting object.
-
-
-
-// inputs:
-// 	text: The string to parse as JSON. See the JSON object for a description of JSON syntax.
-// 	reviver [Optional]: If a function, this prescribes how the value originally produced by parsing is transformed, 
-// 	before being returned.
-// outputs: 
-//   The Object corresponding to the given JSON text. If a reviver is present, it transforms the JSON object before returning it.
-// constraints: 
-// 	Throws a SyntaxError exception if the string to parse is not valid JSON.
-// strategy:
-// 	series of conditionals to determine the type of data being passed in and if a "reviver" is present.
-// 	transform the data using a loop and applying the reviver before returning. 
-// transformation steps: parseJSON("{1: 'hello'}")
-// 	1st check str[0] to determine data type --> object
-// 	2nd look for first colon. element before becomes key, element after becomes value
-// 	3rd look for commas/curly braces to determine if it has more properties or just 1;
-// 	4th return object {'1' : 'hello'};
-// psuedo:
-//   check string[0] data type
-//    if s[0] is [ then check if s[1] is [ *loop until no more [
-//    if s[0] is { create an empty object to use as a collector
-//    if s[0] is ' or " return s;
-//    if s[0] is typeof 'number' return s;
-//    if s[0] is n check if s === null? return null;
 
 // but you're not, so you'll write it from scratch:
-var parseJSON = function(json, reviver) {
-  let o = json[0];
-  if (o === '{') {
-  	let result = {};
+var parseJSON = function(json) {
+  json = json.trim();
+  if (json[0] === '{') {
+  	
   }
-  if (o === '[') {
-  	apply all these conditionals to json[1]
+  if (json[0] === '[') {
+  	return parseArray(json);
   }
-  if (o === `'` || o === `"`) {
-  	return json.substring(1, json.length-1);
+  if (json[0] === `'` || json[0] === `"`) {
+  	return json.substring(1, json.length - 1);  	
   }
-  if (Number(o) || o === '0') {
+  if (Number(json[0]) || json[0] === '0') {
   	return Number(json);
+  }
+  if (json === 'true') {
+  	return true;
+  }
+  if (json === 'false') {
+  	return false;
   }
   if (json === 'null') {
   	return null;
@@ -56,7 +28,47 @@ var parseJSON = function(json, reviver) {
 };
 
 var parseArray = function(string){
-  
+  string = string.trim();
+  var opening = 1;
+  var closing = 0;
+  var openInd = [0];
+  var closeInd = [];
+  var quoteCount = 0;
+  var commaInd = [];
+  for(var i = 1; i < string.length && closing !== opening; i ++){
+  	if(string[i] === '['){
+  		opening ++;
+  		openInd.push(i);
+  	}
+  	if(string[i] === ']'){
+  		closing ++;
+  		closeInd.push(i);
+  	}
+  	if(string[i] === '"' || string[i] === "'"){
+  		quoteCount ++;
+  	}
+  	//Do not want to add to our comma index if a comma is WITHIN another array
+  	if(string[i] === ',' && quoteCount % 2 === 0 && opening - closing === 1){
+  		//decrement 1 from this index because we will be trimming the opening/closing array after this.
+  		commaInd.push(i - 1)
+  	}
+  }
+  string = string.substring(openInd[0] + 1, closeInd[closeInd.length - 1]);
+  if(opening !== closing){
+  	throw error;
+  }
+  var array = [];
+  for(var k = 0; k <= commaInd.length; k++){
+  	if(k === 0){
+  		array.push(parseJSON(string.substring(0,commaInd[k])));
+  	}else if(k === commaInd.length){
+  		array.push(parseJSON(string.substring(commaInd[k - 1] + 1)))
+  	}else{
+  		array.push(parseJSON(string.substring(commaInd[k-1] + 1, commaInd[k])))
+  	}
+  }
+  return array;
+
 };
 
 
